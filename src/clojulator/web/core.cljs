@@ -5,7 +5,7 @@
    [replicant.dom :as r]))
 
 ;; Private State
-(defonce ^:private state (atom {:history (atom [])
+(defonce ^:private state (atom {:history []
                                 :last-result nil
                                 :display ""
                                 :should-append? true}))
@@ -13,14 +13,14 @@
 (defn handle-calculate
   [db]
   (let [expression (:display db)
-        history (:history db)
-        [result value] (calculate expression history)
-        new-state (-> db
+        calculated-db (calculate expression db)
+        {:keys [error value]} calculated-db
+        new-db (-> calculated-db
                       (assoc :should-append? false)
                       (assoc :display (str value)))]
-    (if (= result :ok)
-      (assoc new-state :last-result (str "Ans = " value))
-      new-state)))
+    (if-not error
+      (assoc new-db :last-result (str "Ans = " value))
+      new-db)))
 
 (defn- update-display
   [db value]

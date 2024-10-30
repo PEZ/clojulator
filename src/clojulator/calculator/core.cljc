@@ -9,11 +9,13 @@
   "Given an expressions as a string, attempts to parse
   the string and return the result. Updates the given
   history object with the result."
-  [expression history]
+  [expression state]
   (try
-    (let [result (-> expression tokenize parse (evaluate history))]
-      (update-history history result)
-      [:ok result])
+    (let [value (-> expression tokenize parse (evaluate (:history state)))]
+      (-> state
+          (assoc :value value)
+          (update-history value)
+          (dissoc :error)))
     (catch #?(:clj Exception
               :cljs js/Error) e
-      [:error (ex-message e)])))
+      (assoc state :error (ex-message e)))))
